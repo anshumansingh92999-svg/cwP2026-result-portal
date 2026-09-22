@@ -107,11 +107,14 @@ function renderPage(p){let u=p.data||'';return p.type==='application/pdf'?`<ifra
 function result(r){const c=calc(r.question_marks),pages=r.answer_sheets||[];return `<section class="card result" id="resultCard"><div class="result-head"><div><div class="eyebrow">OFFICIAL EXAMINATION RESULT</div><h2>STUDENT ANSWER SHEET & MARKS</h2><strong>${esc(r.student_name)}</strong><div class="muted">Student ID: ${esc(r.student_id)}</div></div><span class="badge">${esc(r.paper_code)}</span></div><div class="meta">${[['Class',r.class],['Set',r.set],['Subject',r.subject],['Chapter / Test',(r.chapter||'')+' · '+(r.test||'')],['Examination Date',r.date],['Shift',r.shift],['Paper Code',r.paper_code],['Maximum Marks',r.maximum_marks||c.max]].map(x=>`<div><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong></div>`).join('')}</div><div class="result-grid"><section class="card panel"><h3>MARKS AWARDED</h3><table><thead><tr><th>Question</th><th>Maximum</th><th>Awarded</th></tr></thead><tbody>${(r.question_marks||[]).map(x=>`<tr><td>${esc(x[0])}</td><td>${esc(x[1])}</td><td><b>${esc(x[2])}</b></td></tr>`).join('')}</tbody></table><div class="total-box"><div><small>Total Marks</small><b>${c.total}/${c.max}</b></div><div><small>Percentage</small><b>${c.pct.toFixed(2)}%</b></div><div><small>Evaluator</small><b>Anshika Singh</b></div></div><div class="remarks"><b>Evaluator's Remarks</b><p>${esc(r.remarks||'No remarks added.')}</p></div></section><section class="card panel"><h3>STUDENT ANSWER SHEET</h3><div class="sheet"><div id="sheetPage" class="page">${pages.length?renderPage(pages[0]):'<div class="sheet-empty"><b>Answer sheet not uploaded yet.</b><span>The result is available, but scanned pages have not been attached.</span></div>'}</div>${pages.length?`<div class="pager"><button id="prev" class="btn secondary">Previous</button><span id="pageNo">Page 1 / ${pages.length}</span><button id="next" class="btn secondary">Next</button></div>`:''}</div></section></div><div class="actions no-print"><button class="btn primary" onclick="window.print()">PRINT RESULT</button><button class="btn secondary" onclick="home()">NEW SEARCH</button></div></section>`}
 async function lookup(){let sid=document.getElementById('sid').value.trim().toUpperCase(),code=document.getElementById('pcode').value.trim().toUpperCase(),m=document.getElementById('msg');m.className='msg';if(!sid||!code){m.textContent='Please enter Student ID and Paper Code.';m.className='msg show error';return}let r=null;
 try{
-  if(CWP_V2.apiBase){
-    r=await CWP_V2.getResult(sid,code);
-  }else{
-    r=load().find(x=>x.student_id.toUpperCase()===sid&&x.paper_code.toUpperCase()===code);
-  }
+  r = await CWP_ONLINE.getResult(sid, code);
+}catch(err){
+  r = load().find(
+    x =>
+      x.student_id.toUpperCase() === sid &&
+      x.paper_code.toUpperCase() === code
+  );
+}
 }catch(err){
   m.textContent='Online result service is temporarily unavailable.';
   m.className='msg show error';
